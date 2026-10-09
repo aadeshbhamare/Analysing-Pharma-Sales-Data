@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmaceutical Sales Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#0f1117;color:#e0e0e0;font-family:"Segoe UI",sans-serif;}
+
+  .nav{background:#1a1d2e;padding:0 24px;display:flex;align-items:center;
+        gap:8px;border-bottom:2px solid #2a2d3e;position:sticky;top:0;z-index:999;overflow-x:auto;}
+  .nav h1{font-size:18px;color:#4fc3f7;margin-right:24px;padding:14px 0;white-space:nowrap;}
+  .nav-btn{padding:10px 14px;border:none;background:transparent;color:#aaa;
+             cursor:pointer;font-size:12px;border-bottom:3px solid transparent;
+             transition:all .2s;white-space:nowrap;}
+  .nav-btn:hover{color:#fff;background:#2a2d3e;}
+  .nav-btn.active{color:#4fc3f7;border-bottom-color:#4fc3f7;background:#1e2235;}
+
+  .page{display:none;padding:24px;max-width:1400px;margin:0 auto;}
+  .page.active{display:block;}
+  .page-title{font-size:22px;font-weight:700;color:#4fc3f7;margin-bottom:20px;
+               padding-bottom:10px;border-bottom:1px solid #2a2d3e;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:16px;margin-bottom:24px;}
+  .kpi-card{background:#1a1d2e;border-radius:12px;padding:18px 22px;
+             border-left:4px solid;position:relative;overflow:hidden;}
+  .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:8px;}
+  .kpi-value{font-size:28px;font-weight:800;line-height:1.1;}
+  .kpi-sub{font-size:12px;color:#aaa;margin-top:6px;}
+  .kpi-card.blue{border-color:#4fc3f7;} .kpi-card.blue .kpi-value{color:#4fc3f7;}
+  .kpi-card.green{border-color:#4CAF50;} .kpi-card.green .kpi-value{color:#4CAF50;}
+  .kpi-card.purple{border-color:#9C27B0;} .kpi-card.purple .kpi-value{color:#ce93d8;}
+  .kpi-card.orange{border-color:#FF8E53;} .kpi-card.orange .kpi-value{color:#FF8E53;}
+  .kpi-card.cyan{border-color:#00BCD4;} .kpi-card.cyan .kpi-value{color:#00BCD4;}
+
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(540px,1fr));gap:20px;}
+  .chart-full{width:100%;margin-bottom:20px;}
+  .chart-box{background:#1a1d2e;border-radius:12px;padding:20px;}
+  .chart-title{font-size:13px;font-weight:600;color:#aaa;margin-bottom:14px;
+                text-transform:uppercase;letter-spacing:.5px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;}
+  th{background:#2a2d3e;color:#4fc3f7;padding:10px 14px;text-align:left;
+      font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:11px;}
+  td{padding:10px 14px;border-bottom:1px solid #2a2d3e;color:#ddd;}
+  tr:hover td{background:#1e2235;}
+  .medal{font-size:16px;} .rank-1{color:#FFD700;} .rank-2{color:#C0C0C0;} .rank-3{color:#CD7F32;}
+
+  .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+  .badge.peak{background:#c62828;color:#fff;} .badge.high{background:#e65100;color:#fff;}
+  .badge.mid{background:#f9a825;color:#000;} .badge.low{background:#1b5e20;color:#fff;}
+
+  .insight{background:#1e2235;border-radius:10px;padding:14px 18px;
+            border-left:4px solid #4fc3f7;margin-bottom:20px;}
+  .insight p{font-size:13px;color:#ccc;line-height:1.7;}
+  .insight strong{color:#4fc3f7;}
+
+  .footer{text-align:center;padding:30px;color:#555;font-size:12px;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <h1>&#128138; Pharma Sales</h1>
+  <button class="nav-btn active" onclick="showPage('p1',this)">&#128202; Executive Summary</button>
+  <button class="nav-btn" onclick="showPage('p2',this)">&#128230; Sales by Category</button>
+  <button class="nav-btn" onclick="showPage('p3',this)">&#128197; Monthly Comparison</button>
+  <button class="nav-btn" onclick="showPage('p4',this)">&#127942; 2017 Performance</button>
+  <button class="nav-btn" onclick="showPage('p5',this)">&#128200; Avg Daily Sales</button>
+  <button class="nav-btn" onclick="showPage('p6',this)">&#127783; R03 Seasonality</button>
+  <button class="nav-btn" onclick="showPage('p7',this)">&#128201; Trend Analysis</button>
+</div>
+
+<!-- PAGE 1 -->
+<div id="p1" class="page active">
+  <div class="page-title">&#128202; Executive Summary &mdash; All KPIs Together</div>
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Sales (All Time)</div>
+      <div class="kpi-value">127,596</div>
+      <div class="kpi-sub">Units across all 8 drug categories</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Best Selling Drug</div>
+      <div class="kpi-value" style="font-size:20px">N02BE</div>
+      <div class="kpi-sub">Paracetamol &mdash; 63,005 units</div>
+    </div>
+    <div class="kpi-card cyan">
+      <div class="kpi-label">R03 Peak Month</div>
+      <div class="kpi-value" style="font-size:22px">January</div>
+      <div class="kpi-sub">11,609 total R03 units sold</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Drug Categories</div>
+      <div class="kpi-value">8</div>
+      <div class="kpi-sub">M01AB M01AE N02BA N02BE N05B N05C R03 R06</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">N02BE Market Share</div>
+      <div class="kpi-value">49.4%</div>
+      <div class="kpi-sub">Of all pharmaceutical sales</div>
+    </div>
+  </div>
+  <div class="insight">
+    <p>&#128161; <strong>Key Insight:</strong> N02BE (Paracetamol) holds <strong>49.4%</strong> of all sales.
+    R03 Respiratory drugs peak in <strong>winter (January)</strong> and hit the lowest in <strong>summer (July)</strong>.
+    N05B (Anxiolytics) is consistently #2 across all tested periods.</p>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">All-Time Sales Overview (Horizontal Bar)</div>
+    <div id="p1_overview"></div>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div id="p2" class="page">
+  <div class="page-title">&#128230; Q1 &amp; Q2 &mdash; Total Sales by Drug Category</div>
+  <div class="insight">
+    <p>&#128161; <strong>Q1 Answer:</strong> N02BE leads with <strong>63,005 units</strong> &mdash;
+    over 3&times; the next drug (N05B Anxiolytics at 18,646 units).</p>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">Total Sales per Drug Category</div>
+    <div id="p2_bar"></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-box"><div class="chart-title">Market Share Treemap</div><div id="p2_tree"></div></div>
+    <div class="chart-box"><div class="chart-title">Market Share Donut</div><div id="p2_donut"></div></div>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div id="p3" class="page">
+  <div class="page-title">&#128197; Q3 &mdash; Top 3 Drugs: Jan 2015, Jul 2016, Sep 2017</div>
+  <div class="insight">
+    <p>&#128161; <strong>Q3 Answer:</strong> N02BE dominates all three periods. N05B is always #2.
+    In July 2016, M01AB replaced R03 as #3 drug.</p>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">Top 3 Drugs per Period &mdash; Grouped Bar</div>
+    <div id="p3_bar"></div>
+  </div>
+  <table>
+    <thead><tr><th>Period</th><th>Rank</th><th>ATC Code</th><th>Drug Category</th><th>Total Sales</th></tr></thead>
+    <tbody><tr><td>January 2015</td><td class="rank-1 medal">🥇 #1</td><td><strong>N02BE</strong></td><td>Paracetamol (N02BE)</td><td><strong>1,044.24</strong></td></tr>
+<tr><td>January 2015</td><td class="rank-2 medal">🥈 #2</td><td><strong>N05B</strong></td><td>Anxiolytics (N05B)</td><td><strong>463.00</strong></td></tr>
+<tr><td>January 2015</td><td class="rank-3 medal">🥉 #3</td><td><strong>R03</strong></td><td>Respiratory (R03)</td><td><strong>177.25</strong></td></tr>
+<tr><td>July 2016</td><td class="rank-1 medal">🥇 #1</td><td><strong>N02BE</strong></td><td>Paracetamol (N02BE)</td><td><strong>652.36</strong></td></tr>
+<tr><td>July 2016</td><td class="rank-2 medal">🥈 #2</td><td><strong>N05B</strong></td><td>Anxiolytics (N05B)</td><td><strong>240.00</strong></td></tr>
+<tr><td>July 2016</td><td class="rank-3 medal">🥉 #3</td><td><strong>M01AB</strong></td><td>Anti-inflam (Acetic)</td><td><strong>194.53</strong></td></tr>
+<tr><td>September 2017</td><td class="rank-1 medal">🥇 #1</td><td><strong>N02BE</strong></td><td>Paracetamol (N02BE)</td><td><strong>863.75</strong></td></tr>
+<tr><td>September 2017</td><td class="rank-2 medal">🥈 #2</td><td><strong>N05B</strong></td><td>Anxiolytics (N05B)</td><td><strong>223.00</strong></td></tr>
+<tr><td>September 2017</td><td class="rank-3 medal">🥉 #3</td><td><strong>R03</strong></td><td>Respiratory (R03)</td><td><strong>139.00</strong></td></tr>
+</tbody>
+  </table>
+</div>
+
+<!-- PAGE 4 -->
+<div id="p4" class="page">
+  <div class="page-title">&#127942; Q4 &mdash; Drug Sold Most in 2017</div>
+  <div class="kpi-row">
+    <div class="kpi-card green">
+      <div class="kpi-label">&#127942; Winner 2017</div>
+      <div class="kpi-value" style="font-size:22px">N02BE</div>
+      <div class="kpi-sub">Paracetamol &mdash; 9,259 units in 2017</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">2nd Place 2017</div>
+      <div class="kpi-value" style="font-size:22px">N05B</div>
+      <div class="kpi-sub">Anxiolytics &mdash; 2,556 units</div>
+    </div>
+    <div class="kpi-card cyan">
+      <div class="kpi-label">3rd Place 2017</div>
+      <div class="kpi-value" style="font-size:22px">R03</div>
+      <div class="kpi-sub">Respiratory &mdash; 1,894 units</div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-box"><div class="chart-title">2017 Sales &mdash; Bar Chart</div><div id="p4_bar"></div></div>
+    <div class="chart-box"><div class="chart-title">2017 Sales &mdash; Donut Chart</div><div id="p4_donut"></div></div>
+  </div>
+</div>
+
+<!-- PAGE 5 -->
+<div id="p5" class="page">
+  <div class="page-title">&#128200; Q5 &mdash; Average Daily Sales per Drug Category</div>
+  <div class="insight">
+    <p>&#128161; <strong>Q5 Answer:</strong> N02BE averages <strong>~30 units/day</strong> &mdash;
+    3.4&times; the next drug. N05C (Hypnotics) is lowest at 0.59 units/day.</p>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">Average Daily Sales per Category</div>
+    <div id="p5_bar"></div>
+  </div>
+</div>
+
+<!-- PAGE 6 -->
+<div id="p6" class="page">
+  <div class="page-title">&#127783; Q6 &mdash; R03 Respiratory: Monthly Seasonality</div>
+  <div class="kpi-row">
+    <div class="kpi-card cyan">
+      <div class="kpi-label">Peak Month</div>
+      <div class="kpi-value">January</div>
+      <div class="kpi-sub">1,265 units &mdash; highest R03 sales</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">Lowest Month</div>
+      <div class="kpi-value">July</div>
+      <div class="kpi-sub">550 units &mdash; summer lowest</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Seasonality</div>
+      <div class="kpi-value">YES</div>
+      <div class="kpi-sub">Strong winter peak, summer trough</div>
+    </div>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">R03 Monthly Pattern (with Summer / Winter Reference Bands)</div>
+    <div id="p6_line"></div>
+  </div>
+  <table>
+    <thead><tr><th>Month</th><th>R03 Sales</th><th>Season</th></tr></thead>
+    <tbody><tr><td><strong>Jan</strong></td><td>1,264.7</td><td><span class="badge peak">Winter Peak</span></td></tr>
+<tr><td><strong>Feb</strong></td><td>1,165.6</td><td><span class="badge high">High</span></td></tr>
+<tr><td><strong>Mar</strong></td><td>1,170.0</td><td><span class="badge high">High</span></td></tr>
+<tr><td><strong>Apr</strong></td><td>1,038.9</td><td><span class="badge mid">Medium</span></td></tr>
+<tr><td><strong>May</strong></td><td>931.3</td><td><span class="badge mid">Medium</span></td></tr>
+<tr><td><strong>Jun</strong></td><td>783.0</td><td><span class="badge low">Low</span></td></tr>
+<tr><td><strong>Jul</strong></td><td>550.0</td><td><span class="badge low">Summer Lowest</span></td></tr>
+<tr><td><strong>Aug</strong></td><td>577.0</td><td><span class="badge low">Low</span></td></tr>
+<tr><td><strong>Sep</strong></td><td>792.4</td><td><span class="badge mid">Rising</span></td></tr>
+<tr><td><strong>Oct</strong></td><td>1,175.0</td><td><span class="badge high">High</span></td></tr>
+<tr><td><strong>Nov</strong></td><td>934.0</td><td><span class="badge mid">Medium</span></td></tr>
+<tr><td><strong>Dec</strong></td><td>1,227.0</td><td><span class="badge peak">Winter Peak</span></td></tr>
+</tbody>
+  </table>
+</div>
+
+<!-- PAGE 7 -->
+<div id="p7" class="page">
+  <div class="page-title">&#128201; Trend Analysis &mdash; Monthly Sales 2014&ndash;2019</div>
+  <div class="insight">
+    <p>&#128161; Click a drug button to highlight that drug's trend. Click <strong>All Drugs</strong> to show all.</p>
+  </div>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="filterTrend('M01AB')" style="padding:7px 14px;background:#FF6B6B;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">M01AB</button>
+<button onclick="filterTrend('M01AE')" style="padding:7px 14px;background:#FF8E53;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">M01AE</button>
+<button onclick="filterTrend('N02BA')" style="padding:7px 14px;background:#FFCC02;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">N02BA</button>
+<button onclick="filterTrend('N02BE')" style="padding:7px 14px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">N02BE</button>
+<button onclick="filterTrend('N05B')" style="padding:7px 14px;background:#2196F3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">N05B</button>
+<button onclick="filterTrend('N05C')" style="padding:7px 14px;background:#9C27B0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">N05C</button>
+<button onclick="filterTrend('R03')" style="padding:7px 14px;background:#00BCD4;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">R03</button>
+<button onclick="filterTrend('R06')" style="padding:7px 14px;background:#FF5722;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;">R06</button>
+
+    <button onclick="filterTrend('ALL')"
+      style="padding:7px 14px;background:#444;color:#fff;border:none;border-radius:6px;
+             cursor:pointer;font-weight:600;font-size:12px;">All Drugs</button>
+  </div>
+  <div class="chart-box chart-full">
+    <div class="chart-title">Monthly Sales Trend per Drug</div>
+    <div id="p7_trend"></div>
+  </div>
+</div>
+
+<div class="footer">Pharmaceutical Sales Dashboard &bull; Built with Python + Plotly.js &bull; Data: 2014&ndash;2019</div>
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.dispatchEvent(new Event('resize'));
+}
+
+const COLORS = {"M01AB": "#FF6B6B", "M01AE": "#FF8E53", "N02BA": "#FFCC02", "N02BE": "#4CAF50", "N05B": "#2196F3", "N05C": "#9C27B0", "R03": "#00BCD4", "R06": "#FF5722"};
+const DRUG_COLS = ['M01AB','M01AE','N02BA','N02BE','N05B','N05C','R03','R06'];
+
+const q1data   = [{"ATC_Code": "N05C", "Total_Sales": 1249.958333333, "Drug_Category": "Hypnotics (N05C)"}, {"ATC_Code": "R06", "Total_Sales": 6107.8175, "Drug_Category": "Antihistamines (R06)"}, {"ATC_Code": "N02BA", "Total_Sales": 8172.209000000999, "Drug_Category": "Analgesics (Salicylic)"}, {"ATC_Code": "M01AE", "Total_Sales": 8204.618645833, "Drug_Category": "Anti-inflam (Propionic)"}, {"ATC_Code": "M01AB", "Total_Sales": 10600.937083334, "Drug_Category": "Anti-inflam (Acetic)"}, {"ATC_Code": "R03", "Total_Sales": 11608.822916672001, "Drug_Category": "Respiratory (R03)"}, {"ATC_Code": "N05B", "Total_Sales": 18645.737499971, "Drug_Category": "Anxiolytics (N05B)"}, {"ATC_Code": "N02BE", "Total_Sales": 63005.40270834, "Drug_Category": "Paracetamol (N02BE)"}];
+const q3data   = [{"Period": "January 2015", "Rank": 1, "ATC_Code": "N02BE", "Drug_Category": "Paracetamol (N02BE)", "Total_Sales": 1044.24}, {"Period": "January 2015", "Rank": 2, "ATC_Code": "N05B", "Drug_Category": "Anxiolytics (N05B)", "Total_Sales": 463.0}, {"Period": "January 2015", "Rank": 3, "ATC_Code": "R03", "Drug_Category": "Respiratory (R03)", "Total_Sales": 177.25}, {"Period": "July 2016", "Rank": 1, "ATC_Code": "N02BE", "Drug_Category": "Paracetamol (N02BE)", "Total_Sales": 652.36}, {"Period": "July 2016", "Rank": 2, "ATC_Code": "N05B", "Drug_Category": "Anxiolytics (N05B)", "Total_Sales": 240.0}, {"Period": "July 2016", "Rank": 3, "ATC_Code": "M01AB", "Drug_Category": "Anti-inflam (Acetic)", "Total_Sales": 194.53}, {"Period": "September 2017", "Rank": 1, "ATC_Code": "N02BE", "Drug_Category": "Paracetamol (N02BE)", "Total_Sales": 863.75}, {"Period": "September 2017", "Rank": 2, "ATC_Code": "N05B", "Drug_Category": "Anxiolytics (N05B)", "Total_Sales": 223.0}, {"Period": "September 2017", "Rank": 3, "ATC_Code": "R03", "Drug_Category": "Respiratory (R03)", "Total_Sales": 139.0}];
+const q4data   = [{"ATC_Code": "N02BE", "Total_Sales_2017": 9258.80483333, "Drug_Category": "Paracetamol (N02BE)"}, {"ATC_Code": "N05B", "Total_Sales_2017": 2555.541666641, "Drug_Category": "Anxiolytics (N05B)"}, {"ATC_Code": "R03", "Total_Sales_2017": 1893.6145833350001, "Drug_Category": "Respiratory (R03)"}, {"ATC_Code": "M01AB", "Total_Sales_2017": 1846.6170833340002, "Drug_Category": "Anti-inflam (Acetic)"}, {"ATC_Code": "M01AE", "Total_Sales_2017": 1387.298333333, "Drug_Category": "Anti-inflam (Propionic)"}, {"ATC_Code": "N02BA", "Total_Sales_2017": 1288.2958333340002, "Drug_Category": "Analgesics (Salicylic)"}, {"ATC_Code": "R06", "Total_Sales_2017": 988.8599999999999, "Drug_Category": "Antihistamines (R06)"}, {"ATC_Code": "N05C", "Total_Sales_2017": 180.33333333299998, "Drug_Category": "Hypnotics (N05C)"}];
+const q5data   = [{"ATC_Code": "N05C", "Avg_Daily_Sales": 0.5935224754667616, "Drug_Category": "Hypnotics (N05C)"}, {"ATC_Code": "R06", "Avg_Daily_Sales": 2.90019824311491, "Drug_Category": "Antihistamines (R06)"}, {"ATC_Code": "N02BA", "Avg_Daily_Sales": 3.880441120608262, "Drug_Category": "Analgesics (Salicylic)"}, {"ATC_Code": "M01AE", "Avg_Daily_Sales": 3.8958303161600187, "Drug_Category": "Anti-inflam (Propionic)"}, {"ATC_Code": "M01AB", "Avg_Daily_Sales": 5.033683325419753, "Drug_Category": "Anti-inflam (Acetic)"}, {"ATC_Code": "R03", "Avg_Daily_Sales": 5.512261593861349, "Drug_Category": "Respiratory (R03)"}, {"ATC_Code": "N05B", "Avg_Daily_Sales": 8.853626543196107, "Drug_Category": "Anxiolytics (N05B)"}, {"ATC_Code": "N02BE", "Avg_Daily_Sales": 29.917095303105413, "Drug_Category": "Paracetamol (N02BE)"}];
+const q6data   = [{"Month_Num": 1, "MonthName": "Jan", "R03_Sales": 1264.656250002}, {"Month_Num": 2, "MonthName": "Feb", "R03_Sales": 1165.583333333}, {"Month_Num": 3, "MonthName": "Mar", "R03_Sales": 1170.0}, {"Month_Num": 4, "MonthName": "Apr", "R03_Sales": 1038.875}, {"Month_Num": 5, "MonthName": "May", "R03_Sales": 931.29166667}, {"Month_Num": 6, "MonthName": "Jun", "R03_Sales": 783.0}, {"Month_Num": 7, "MonthName": "Jul", "R03_Sales": 550.0}, {"Month_Num": 8, "MonthName": "Aug", "R03_Sales": 577.0}, {"Month_Num": 9, "MonthName": "Sep", "R03_Sales": 792.416666667}, {"Month_Num": 10, "MonthName": "Oct", "R03_Sales": 1175.0}, {"Month_Num": 11, "MonthName": "Nov", "R03_Sales": 934.0}, {"Month_Num": 12, "MonthName": "Dec", "R03_Sales": 1227.0}];
+const trendData= [{"YearMonth": "2014-01", "M01AB": 127.69, "M01AE": 99.09, "N02BA": 152.1, "N02BE": 878.03, "N05B": 354.0, "N05C": 30.0, "R03": 112.0, "R06": 48.2}, {"YearMonth": "2014-02", "M01AB": 133.32, "M01AE": 126.05, "N02BA": 177.0, "N02BE": 1001.9, "N05B": 347.0, "N05C": 31.0, "R03": 122.0, "R06": 36.2}, {"YearMonth": "2014-03", "M01AB": 137.44, "M01AE": 92.95, "N02BA": 147.655, "N02BE": 779.275, "N05B": 232.0, "N05C": 20.0, "R03": 112.0, "R06": 85.4}, {"YearMonth": "2014-04", "M01AB": 113.1, "M01AE": 89.475, "N02BA": 125.15, "N02BE": 698.5, "N05B": 209.0, "N05C": 18.0, "R03": 97.0, "R06": 73.7}, {"YearMonth": "2014-05", "M01AB": 101.78999999999999, "M01AE": 119.93299999999999, "N02BA": 132.1, "N02BE": 628.78, "N05B": 270.0, "N05C": 23.0, "R03": 107.0, "R06": 123.7}, {"YearMonth": "2014-06", "M01AB": 112.07, "M01AE": 94.71, "N02BA": 122.9, "N02BE": 548.225, "N05B": 323.0, "N05C": 23.0, "R03": 57.0, "R06": 109.3}, {"YearMonth": "2014-07", "M01AB": 117.06, "M01AE": 95.00999999999999, "N02BA": 129.3, "N02BE": 491.9, "N05B": 348.0, "N05C": 21.0, "R03": 61.0, "R06": 69.1}, {"YearMonth": "2014-08", "M01AB": 124.78999999999999, "M01AE": 99.78, "N02BA": 123.8, "N02BE": 547.35, "N05B": 420.0, "N05C": 29.0, "R03": 37.0, "R06": 70.8}, {"YearMonth": "2014-09", "M01AB": 108.78, "M01AE": 109.094, "N02BA": 112.1, "N02BE": 887.8199999999999, "N05B": 399.0, "N05C": 14.0, "R03": 115.0, "R06": 58.8}, {"YearMonth": "2014-10", "M01AB": 101.195, "M01AE": 108.7513125, "N02BA": 140.5375, "N02BE": 1073.136875, "N05B": 432.0625, "N05C": 19.625, "R03": 160.0, "R06": 46.6875}, {"YearMonth": "2014-11", "M01AB": 138.08, "M01AE": 100.86, "N02BA": 142.7, "N02BE": 723.8, "N05B": 489.0, "N05C": 19.0, "R03": 112.0, "R06": 45.2}, {"YearMonth": "2014-12", "M01AB": 131.9, "M01AE": 121.401, "N02BA": 111.124, "N02BE": 1015.66, "N05B": 492.0, "N05C": 25.0, "R03": 163.0, "R06": 33.4}, {"YearMonth": "2015-01", "M01AB": 135.91, "M01AE": 130.349, "N02BA": 141.0, "N02BE": 1044.24, "N05B": 463.0, "N05C": 24.0, "R03": 177.25, "R06": 42.0}, {"YearMonth": "2015-02", "M01AB": 115.71, "M01AE": 123.74, "N02BA": 131.83, "N02BE": 953.2520000000001, "N05B": 243.0, "N05C": 9.0, "R03": 208.0, "R06": 47.0}, {"YearMonth": "2015-03", "M01AB": 156.04, "M01AE": 129.386, "N02BA": 133.8, "N02BE": 1084.85, "N05B": 208.0, "N05C": 13.0, "R03": 170.0, "R06": 54.0}, {"YearMonth": "2015-04", "M01AB": 154.5, "M01AE": 101.115, "N02BA": 122.10000000000001, "N02BE": 940.17, "N05B": 192.0, "N05C": 5.0, "R03": 97.0, "R06": 112.0}, {"YearMonth": "2015-05", "M01AB": 160.02, "M01AE": 119.117, "N02BA": 136.04, "N02BE": 765.9, "N05B": 194.0, "N05C": 10.0, "R03": 100.0, "R06": 159.5}, {"YearMonth": "2015-06", "M01AB": 151.87, "M01AE": 113.69, "N02BA": 145.46, "N02BE": 715.413, "N05B": 217.0, "N05C": 12.0, "R03": 193.0, "R06": 125.8}, {"YearMonth": "2015-07", "M01AB": 175.60999999999999, "M01AE": 113.81, "N02BA": 125.5, "N02BE": 708.828, "N05B": 203.0, "N05C": 6.0, "R03": 60.0, "R06": 130.3}, {"YearMonth": "2015-08", "M01AB": 181.69, "M01AE": 144.519, "N02BA": 133.4, "N02BE": 790.788, "N05B": 265.5, "N05C": 15.0, "R03": 45.0, "R06": 83.7}, {"YearMonth": "2015-09", "M01AB": 166.22, "M01AE": 134.122, "N02BA": 110.4, "N02BE": 852.125, "N05B": 243.5, "N05C": 11.0, "R03": 91.0, "R06": 71.0}, {"YearMonth": "2015-10", "M01AB": 195.81, "M01AE": 127.231, "N02BA": 146.2, "N02BE": 1574.335, "N05B": 222.0, "N05C": 8.0, "R03": 184.0, "R06": 72.0}, {"YearMonth": "2015-11", "M01AB": 142.78, "M01AE": 128.233, "N02BA": 145.9, "N02BE": 1234.975, "N05B": 228.0, "N05C": 18.0, "R03": 165.0, "R06": 44.0}, {"YearMonth": "2015-12", "M01AB": 159.46, "M01AE": 131.291, "N02BA": 137.0, "N02BE": 1258.349, "N05B": 286.0, "N05C": 28.0, "R03": 231.0, "R06": 41.73}, {"YearMonth": "2016-01", "M01AB": 171.65, "M01AE": 128.40200000000002, "N02BA": 172.5, "N02BE": 1476.324, "N05B": 248.0, "N05C": 24.0, "R03": 174.0, "R06": 56.5}, {"YearMonth": "2016-02", "M01AB": 173.81, "M01AE": 137.528, "N02BA": 134.2, "N02BE": 1224.862, "N05B": 239.0, "N05C": 20.0, "R03": 245.0, "R06": 58.0}, {"YearMonth": "2016-03", "M01AB": 156.64, "M01AE": 165.589, "N02BA": 148.4, "N02BE": 1150.7, "N05B": 250.0, "N05C": 13.0, "R03": 253.0, "R06": 97.84}, {"YearMonth": "2016-04", "M01AB": 166.61, "M01AE": 146.526, "N02BA": 147.7, "N02BE": 998.337, "N05B": 292.0, "N05C": 18.0, "R03": 216.0, "R06": 162.4}, {"YearMonth": "2016-05", "M01AB": 167.36, "M01AE": 120.861, "N02BA": 130.55, "N02BE": 997.15, "N05B": 255.0, "N05C": 18.0, "R03": 131.0, "R06": 137.1}, {"YearMonth": "2016-06", "M01AB": 169.67, "M01AE": 114.961, "N02BA": 117.75, "N02BE": 760.05, "N05B": 280.5, "N05C": 20.0, "R03": 127.0, "R06": 134.8}, {"YearMonth": "2016-07", "M01AB": 194.528333333, "M01AE": 141.019, "N02BA": 137.9, "N02BE": 652.362, "N05B": 240.0, "N05C": 8.0, "R03": 109.0, "R06": 116.83}, {"YearMonth": "2016-08", "M01AB": 211.13, "M01AE": 114.375, "N02BA": 132.7, "N02BE": 686.38333334, "N05B": 275.5, "N05C": 12.0, "R03": 116.0, "R06": 85.3}, {"YearMonth": "2016-09", "M01AB": 172.96, "M01AE": 126.218, "N02BA": 116.7, "N02BE": 1118.699, "N05B": 307.0, "N05C": 18.0, "R03": 121.0, "R06": 69.3}, {"YearMonth": "2016-10", "M01AB": 186.76, "M01AE": 142.056, "N02BA": 160.15, "N02BE": 1583.69166667, "N05B": 290.83333333, "N05C": 11.0, "R03": 220.0, "R06": 60.9}, {"YearMonth": "2016-11", "M01AB": 166.846666667, "M01AE": 116.85, "N02BA": 133.85, "N02BE": 1062.686, "N05B": 234.16666667, "N05C": 27.0, "R03": 150.0, "R06": 51.2}, {"YearMonth": "2016-12", "M01AB": 169.32, "M01AE": 135.056, "N02BA": 122.816666667, "N02BE": 1624.335, "N05B": 226.33333333, "N05C": 18.0, "R03": 275.0, "R06": 34.9}, {"YearMonth": "2017-01", "M01AB": 181.902083334, "M01AE": 150.991249999, "N02BA": 191.27083333299998, "N02BE": 1439.36, "N05B": 443.749999984, "N05C": 34.166666666, "R03": 196.406250002, "R06": 61.750000001000004}, {"YearMonth": "2017-02", "M01AB": 159.99, "M01AE": 125.339083334, "N02BA": 122.875000001, "N02BE": 670.87583333, "N05B": 178.791666657, "N05C": 11.166666667, "R03": 140.33333333299998, "R06": 38.099999999}, {"YearMonth": "2017-03", "M01AB": 162.85, "M01AE": 111.055, "N02BA": 107.35, "N02BE": 612.5, "N05B": 165.0, "N05C": 9.0, "R03": 109.0, "R06": 100.1}, {"YearMonth": "2017-04", "M01AB": 155.61, "M01AE": 101.215, "N02BA": 100.5, "N02BE": 540.2, "N05B": 132.0, "N05C": 9.0, "R03": 180.875, "R06": 122.4}, {"YearMonth": "2017-05", "M01AB": 143.66, "M01AE": 118.125, "N02BA": 98.95, "N02BE": 547.9399999999999, "N05B": 148.0, "N05C": 23.0, "R03": 128.0, "R06": 161.81}, {"YearMonth": "2017-06", "M01AB": 122.33, "M01AE": 103.006, "N02BA": 99.6, "N02BE": 496.1, "N05B": 163.0, "N05C": 8.0, "R03": 163.0, "R06": 151.9}, {"YearMonth": "2017-07", "M01AB": 150.295, "M01AE": 116.206, "N02BA": 75.2, "N02BE": 479.35, "N05B": 219.0, "N05C": 15.0, "R03": 115.0, "R06": 81.1}, {"YearMonth": "2017-08", "M01AB": 170.15, "M01AE": 112.47, "N02BA": 84.39999999999999, "N02BE": 549.3, "N05B": 239.0, "N05C": 12.0, "R03": 75.0, "R06": 60.1}, {"YearMonth": "2017-09", "M01AB": 138.33, "M01AE": 118.711, "N02BA": 88.15, "N02BE": 863.75, "N05B": 223.0, "N05C": 23.0, "R03": 139.0, "R06": 66.9}, {"YearMonth": "2017-10", "M01AB": 137.64, "M01AE": 88.737, "N02BA": 100.4, "N02BE": 1184.35, "N05B": 226.0, "N05C": 15.0, "R03": 247.0, "R06": 51.0}, {"YearMonth": "2017-11", "M01AB": 163.85, "M01AE": 119.78, "N02BA": 104.45, "N02BE": 867.899, "N05B": 192.0, "N05C": 15.0, "R03": 196.0, "R06": 46.6}, {"YearMonth": "2017-12", "M01AB": 160.01, "M01AE": 121.663, "N02BA": 115.15, "N02BE": 1007.1800000000001, "N05B": 226.0, "N05C": 6.0, "R03": 204.0, "R06": 47.1}, {"YearMonth": "2018-01", "M01AB": 132.28, "M01AE": 109.446, "N02BA": 101.15, "N02BE": 1134.325, "N05B": 229.0, "N05C": 11.0, "R03": 219.0, "R06": 49.5}, {"YearMonth": "2018-02", "M01AB": 128.36, "M01AE": 132.804, "N02BA": 114.65, "N02BE": 1255.374, "N05B": 268.0, "N05C": 12.0, "R03": 224.25, "R06": 39.06}, {"YearMonth": "2018-03", "M01AB": 146.16, "M01AE": 111.764, "N02BA": 122.3, "N02BE": 999.123, "N05B": 381.0, "N05C": 42.0, "R03": 269.0, "R06": 85.5}, {"YearMonth": "2018-04", "M01AB": 170.02, "M01AE": 107.723, "N02BA": 84.6, "N02BE": 803.287, "N05B": 289.0, "N05C": 14.0, "R03": 229.0, "R06": 197.1}, {"YearMonth": "2018-05", "M01AB": 160.52, "M01AE": 103.522, "N02BA": 89.4, "N02BE": 644.648, "N05B": 259.0, "N05C": 13.0, "R03": 167.0, "R06": 213.04}, {"YearMonth": "2018-06", "M01AB": 141.18, "M01AE": 114.226, "N02BA": 86.8, "N02BE": 584.343, "N05B": 248.0, "N05C": 18.0, "R03": 101.0, "R06": 120.8}, {"YearMonth": "2018-07", "M01AB": 150.18, "M01AE": 132.549, "N02BA": 87.2, "N02BE": 679.35, "N05B": 283.0, "N05C": 19.0, "R03": 90.0, "R06": 122.2}, {"YearMonth": "2018-08", "M01AB": 140.0, "M01AE": 114.719, "N02BA": 88.25, "N02BE": 733.838, "N05B": 253.0, "N05C": 20.0, "R03": 159.0, "R06": 103.1}, {"YearMonth": "2018-09", "M01AB": 153.52, "M01AE": 114.99199999999999, "N02BA": 86.5, "N02BE": 1058.262, "N05B": 263.0, "N05C": 12.0, "R03": 205.0, "R06": 88.1}, {"YearMonth": "2018-10", "M01AB": 144.71, "M01AE": 129.4, "N02BA": 76.05, "N02BE": 1129.275, "N05B": 287.0, "N05C": 25.0, "R03": 327.0, "R06": 76.9}, {"YearMonth": "2018-11", "M01AB": 172.29, "M01AE": 105.487, "N02BA": 102.15, "N02BE": 995.15, "N05B": 252.2, "N05C": 22.0, "R03": 311.0, "R06": 48.4}, {"YearMonth": "2018-12", "M01AB": 147.71, "M01AE": 113.024, "N02BA": 84.75, "N02BE": 1213.95, "N05B": 254.0, "N05C": 27.0, "R03": 354.0, "R06": 53.1}, {"YearMonth": "2019-01", "M01AB": 179.7, "M01AE": 189.646, "N02BA": 99.7, "N02BE": 1660.612, "N05B": 295.2, "N05C": 23.0, "R03": 386.0, "R06": 41.3}, {"YearMonth": "2019-02", "M01AB": 133.73, "M01AE": 142.155, "N02BA": 110.2, "N02BE": 1001.212, "N05B": 249.4, "N05C": 12.0, "R03": 226.0, "R06": 69.5}, {"YearMonth": "2019-03", "M01AB": 154.52, "M01AE": 113.118, "N02BA": 83.35, "N02BE": 941.0500000000001, "N05B": 301.4, "N05C": 19.0, "R03": 257.0, "R06": 169.5}, {"YearMonth": "2019-04", "M01AB": 161.39, "M01AE": 100.16499999999999, "N02BA": 88.1, "N02BE": 647.65, "N05B": 299.4, "N05C": 22.0, "R03": 219.0, "R06": 179.1}, {"YearMonth": "2019-05", "M01AB": 168.04, "M01AE": 97.258, "N02BA": 104.1, "N02BE": 703.562, "N05B": 265.8, "N05C": 26.0, "R03": 298.29166667, "R06": 135.4}, {"YearMonth": "2019-06", "M01AB": 151.54, "M01AE": 101.627, "N02BA": 103.2, "N02BE": 610.0, "N05B": 193.0, "N05C": 25.0, "R03": 142.0, "R06": 156.04}, {"YearMonth": "2019-07", "M01AB": 181.0, "M01AE": 103.541, "N02BA": 92.8, "N02BE": 620.675, "N05B": 250.6, "N05C": 20.0, "R03": 115.0, "R06": 105.2}, {"YearMonth": "2019-08", "M01AB": 181.91, "M01AE": 88.269, "N02BA": 84.2, "N02BE": 518.1, "N05B": 237.0, "N05C": 26.0, "R03": 145.0, "R06": 97.3}, {"YearMonth": "2019-09", "M01AB": 161.07, "M01AE": 111.437, "N02BA": 93.5, "N02BE": 984.48, "N05B": 227.8, "N05C": 16.0, "R03": 121.416666667, "R06": 109.1}, {"YearMonth": "2019-10", "M01AB": 44.37, "M01AE": 37.3, "N02BA": 20.65, "N02BE": 295.15, "N05B": 86.0, "N05C": 7.0, "R03": 37.0, "R06": 11.129999999999999}];
+
+const LAYOUT = (xlab='', ylab='') => ({
+  paper_bgcolor:'#1a1d2e', plot_bgcolor:'#1a1d2e',
+  font:{color:'#ccc', family:'Segoe UI'},
+  xaxis:{title:xlab, gridcolor:'#2a2d3e', color:'#aaa', tickfont:{color:'#bbb'}},
+  yaxis:{title:ylab, gridcolor:'#2a2d3e', color:'#aaa', tickfont:{color:'#bbb'}},
+  legend:{bgcolor:'#1a1d2e', bordercolor:'#2a2d3e', font:{color:'#ccc'}},
+  margin:{t:30, l:60, r:20, b:60},
+});
+const CFG = {responsive:true, displayModeBar:false};
+
+// PAGE 1
+Plotly.newPlot('p1_overview', [{
+  type:'bar', orientation:'h',
+  x: q1data.map(d=>d.Total_Sales),
+  y: q1data.map(d=>d.ATC_Code),
+  marker:{color:q1data.map(d=>COLORS[d.ATC_Code]), opacity:.9},
+  text: q1data.map(d=>d.Total_Sales.toLocaleString(undefined,{maximumFractionDigits:0})),
+  textposition:'outside',
+  hovertemplate:'<b>%{y}</b><br>%{x:,.0f} units<extra></extra>'
+}], {...LAYOUT('Units Sold','Drug Code'), height:320}, CFG);
+
+// PAGE 2
+Plotly.newPlot('p2_bar', [{
+  type:'bar', orientation:'h',
+  x: q1data.map(d=>d.Total_Sales),
+  y: q1data.map(d=>d.Drug_Category),
+  marker:{color:q1data.map(d=>COLORS[d.ATC_Code])},
+  text: q1data.map(d=>d.Total_Sales.toLocaleString(undefined,{maximumFractionDigits:0})),
+  textposition:'outside',
+  hovertemplate:'<b>%{y}</b><br>%{x:,.0f} units<extra></extra>'
+}], {...LAYOUT('Units Sold','Drug Category'), height:400}, CFG);
+
+Plotly.newPlot('p2_tree', [{
+  type:'treemap',
+  labels: q1data.map(d=>d.ATC_Code),
+  parents: q1data.map(()=>''),
+  values: q1data.map(d=>d.Total_Sales),
+  textinfo:'label+value+percent root',
+  marker:{colors:q1data.map(d=>COLORS[d.ATC_Code])},
+  hovertemplate:'<b>%{label}</b><br>%{value:,.0f} units<extra></extra>',
+}], {...LAYOUT(), height:360, margin:{t:10,l:10,r:10,b:10}}, CFG);
+
+Plotly.newPlot('p2_donut', [{
+  type:'pie', hole:.45,
+  labels: q1data.map(d=>d.ATC_Code),
+  values: q1data.map(d=>d.Total_Sales),
+  marker:{colors:q1data.map(d=>COLORS[d.ATC_Code])},
+  textinfo:'label+percent',
+  hovertemplate:'<b>%{label}</b><br>%{value:,.0f} units (%{percent})<extra></extra>',
+}], {...LAYOUT(), height:360, showlegend:true, margin:{t:20,l:10,r:10,b:10}}, CFG);
+
+// PAGE 3
+const periods3 = ['January 2015','July 2016','September 2017'];
+Plotly.newPlot('p3_bar',
+  [1,2,3].map(r => {
+    const sub = q3data.filter(d=>d.Rank===r);
+    return {
+      type:'bar', name:'Rank #'+r,
+      x: periods3,
+      y: periods3.map(p=>{ const s=sub.find(d=>d.Period===p); return s?s.Total_Sales:0; }),
+      text: periods3.map(p=>{ const s=sub.find(d=>d.Period===p); return s?s.ATC_Code:''; }),
+      textposition:'inside',
+      marker:{color: r===1?'#FFD700':r===2?'#C0C0C0':'#CD7F32'},
+      hovertemplate:'<b>%{x}</b> Rank #'+r+'<br>Drug: %{text}<br>Sales: %{y:,.2f}<extra></extra>',
+    };
+  }),
+  {...LAYOUT('Period','Sales Units'), barmode:'group', height:400}, CFG);
+
+// PAGE 4
+const p4s=[...q4data].sort((a,b)=>a.Total_Sales_2017-b.Total_Sales_2017);
+Plotly.newPlot('p4_bar', [{
+  type:'bar', orientation:'h',
+  x: p4s.map(d=>d.Total_Sales_2017),
+  y: p4s.map(d=>d.ATC_Code),
+  marker:{color:p4s.map(d=>COLORS[d.ATC_Code])},
+  text: p4s.map(d=>d.Total_Sales_2017.toFixed(0)),
+  textposition:'outside',
+  hovertemplate:'<b>%{y}</b><br>2017 Sales: %{x:,.0f}<extra></extra>'
+}], {...LAYOUT('Units','Drug'), height:360}, CFG);
+
+Plotly.newPlot('p4_donut', [{
+  type:'pie', hole:.5,
+  labels: q4data.map(d=>d.ATC_Code),
+  values: q4data.map(d=>d.Total_Sales_2017),
+  marker:{colors:q4data.map(d=>COLORS[d.ATC_Code])},
+  textinfo:'label+percent',
+  hovertemplate:'<b>%{label}</b><br>%{value:,.0f} units (%{percent})<extra></extra>'
+}], {...LAYOUT(), height:360, showlegend:true, margin:{t:30,l:10,r:10,b:20}}, CFG);
+
+// PAGE 5
+const q5s=[...q5data].sort((a,b)=>a.Avg_Daily_Sales-b.Avg_Daily_Sales);
+Plotly.newPlot('p5_bar', [{
+  type:'bar', orientation:'h',
+  x: q5s.map(d=>d.Avg_Daily_Sales),
+  y: q5s.map(d=>d.Drug_Category),
+  marker:{color:q5s.map(d=>COLORS[d.ATC_Code]), opacity:.9},
+  text: q5s.map(d=>d.Avg_Daily_Sales.toFixed(2)),
+  textposition:'outside',
+  hovertemplate:'<b>%{y}</b><br>%{x:.2f} units/day<extra></extra>'
+}], {...LAYOUT('Avg Units/Day','Drug Category'), height:400}, CFG);
+
+// PAGE 6
+Plotly.newPlot('p6_line',[
+  {type:'scatter', mode:'lines+markers', name:'R03 Sales',
+    x: q6data.map(d=>d.MonthName), y: q6data.map(d=>d.R03_Sales),
+    line:{color:'#00BCD4',width:3}, marker:{size:9,color:'#00BCD4'},
+    fill:'tozeroy', fillcolor:'rgba(0,188,212,.12)',
+    hovertemplate:'<b>%{x}</b><br>R03: %{y:,.1f} units<extra></extra>'},
+  {type:'scatter', mode:'lines', name:'Summer (Jun-Aug)',
+    x:['Jun','Jun','Aug','Aug','Jun'], y:[0,700,700,0,0],
+    fill:'toself', fillcolor:'rgba(255,235,59,.08)',
+    line:{color:'rgba(255,235,59,.4)',width:1}},
+  {type:'scatter', mode:'lines', name:'Winter Peak',
+    x:['Jan','Jan'], y:[0,1400],
+    line:{color:'rgba(255,100,100,.6)',width:2,dash:'dot'}},
+], {...LAYOUT('Month','R03 Units Sold'), height:420}, CFG);
+
+// PAGE 7
+let trendTraces = DRUG_COLS.map(col=>{
+  return {
+    type:'scatter', mode:'lines', name:col,
+    x: trendData.map(d=>d.YearMonth),
+    y: trendData.map(d=>d[col]),
+    line:{color:COLORS[col],width:2},
+    hovertemplate:'<b>'+col+'</b> %{x}<br>%{y:,.1f} units<extra></extra>'
+  };
+});
+Plotly.newPlot('p7_trend', trendTraces,
+  {...LAYOUT('Year-Month','Monthly Sales'), height:500,
+    legend:{orientation:'h',y:-0.15}}, CFG);
+
+function filterTrend(code) {
+  const vis = DRUG_COLS.map(c => code==='ALL' ? true : (c===code ? true : 'legendonly'));
+  Plotly.restyle('p7_trend', {visible: vis});
+}
+</script>
+</body>
+</html>
