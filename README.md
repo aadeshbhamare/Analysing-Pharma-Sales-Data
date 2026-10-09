@@ -1,10 +1,10 @@
+# Analysing Pharmaceutical Sales Data
+## PROJECT URL
 https://roadmap.sh/projects/pharmaceutical-sales-data
-
 ## WEBSITE URL
 https://tubular-bublanina-289209.netlify.app/     (dashboard)
 &
 jupter notebook file - untitled.html (provided in html & in pdf format)
-# Analysing Pharmaceutical Sales Data
 ## About the Project
 This project focuses on analyzing pharmaceutical sales data using Python and Machine Learning. I used Jupyter Notebook to explore historical sales data, understand sales patterns, visualize trends, and work on predicting future sales.
 The project uses daily, hourly, weekly, and monthly sales datasets. I also developed an interactive dashboard using Antigravity to present the analysis and make the results easier to understand.
